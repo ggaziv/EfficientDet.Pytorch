@@ -373,11 +373,22 @@ if __name__ == '__main__':
             iou_threshold=args.iou_threshold)
         model.load_state_dict(checkpoint['state_dict'])
     model = model.cuda()
+    if args.dataset == 'VOC':
+        evaluate(dataset, model)
+    elif args.dataset == 'COCO':
+        evaluate_coco(dataset, model)
+    elif args.dataset == 'XVIEW':
+        evaluate_coco(dataset, model)
+
     if(args.dataset == 'VOC'):
         valid_dataset = VOCDetection(root=args.dataset_root, image_sets=[('2007', 'test')],
                                      transform=transforms.Compose([Normalizer(), Resizer()]))
         evaluate(valid_dataset, model)
-    else:
+    elif args.dataset == 'COCO':
         valid_dataset = CocoDataset(root_dir=args.dataset_root, set_name='val2017',
                                     transform=transforms.Compose([Normalizer(), Resizer()]))
         evaluate_coco(valid_dataset, model)
+    elif args.dataset == 'XVIEW':
+        normalizer = Normalizer(mu=np.array([0.23582, 0.19489, 0.15979]), sig=np.array([0.11761, 0.096071, 0.086455]))
+        valid_dataset = XView(root=args.dataset_root + '/val', transform=transforms.Compose([normalizer, Resizer()]))
+        evaluate(valid_dataset, model)

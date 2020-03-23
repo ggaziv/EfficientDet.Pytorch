@@ -150,7 +150,7 @@ def test(dataset, model, epoch, args):
         elif args.dataset == 'COCO':
             evaluate_coco(dataset, model)
         elif args.dataset == 'XVIEW':
-            evaluate_coco(dataset, model)
+            evaluate(dataset, model)
 
 
 def main_worker(gpu, ngpus_per_node, args):
@@ -278,7 +278,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     for epoch in range(args.start_epoch, args.num_epoch):
         train(train_loader, model, scheduler, optimizer, epoch, args)
-
+        # test(valid_dataset, model, epoch, args)
         if (epoch + 1) % 5 == 0:
             test(valid_dataset, model, epoch, args)
 

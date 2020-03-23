@@ -236,6 +236,17 @@ class XView(data.Dataset):
     def num_classes(self):
         return len(unique(np.concatenate([unique(array(x)[:,-1]) for x in self.annotations.values()])))
 
+    def label_to_name(self, label):
+        if self.coarse_class:
+            return coarse_class_names[label]
+        else:
+            return class_id_map[label]
+
+    def load_annotations(self, index):
+        _, target = self.data[index]
+        target = array(target, dtype='float32')
+        return target
+
 if __name__ == "__main__":
     train_path = '/data/guyga/datasets/xview/train_images'
     dset = XView(train_path)
