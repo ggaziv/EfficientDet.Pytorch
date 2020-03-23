@@ -96,6 +96,7 @@ class Resizer(object):
 
     def __call__(self, sample, common_size=512):
         image, annots = sample['img'], sample['annot']
+        # print(annots.dtype)
         height, width, _ = image.shape
         if height > width:
             scale = common_size / height
@@ -140,9 +141,9 @@ class Augmenter(object):
 
 class Normalizer(object):
 
-    def __init__(self):
-        self.mean = np.array([[[0.485, 0.456, 0.406]]])
-        self.std = np.array([[[0.229, 0.224, 0.225]]])
+    def __init__(self, mu=np.array([[[0.485, 0.456, 0.406]]]), sig=np.array([[[0.229, 0.224, 0.225]]])):
+        self.mean = mu
+        self.std = sig
 
     def __call__(self, sample):
         image, annots = sample['img'], sample['annot']

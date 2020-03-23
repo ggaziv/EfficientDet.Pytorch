@@ -29,12 +29,12 @@ from torch.utils.data import DataLoader
 
 from models.efficientdet import EfficientDet
 from models.losses import FocalLoss
-from datasets import VOCDetection, CocoDataset, get_augumentation, detection_collate, Resizer, Normalizer, Augmenter, collater
+from datasets import VOCDetection, CocoDataset, xview, XView, get_augumentation, detection_collate, Resizer, Normalizer, Augmenter, collater
 from utils import EFFICIENTDET, get_state_dict
 from eval import evaluate, evaluate_coco
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-parser.add_argument('--dataset', default='VOC', choices=['VOC', 'COCO'],
+parser.add_argument('--dataset', default='VOC', choices=['VOC', 'COCO', 'XVIEW'],
                     type=str, help='VOC or COCO')
 parser.add_argument(
     '--dataset_root',
@@ -145,9 +145,11 @@ def test(dataset, model, epoch, args):
     model.eval()
     model.is_training = False
     with torch.no_grad():
-        if(args.dataset == 'VOC'):
+        if args.dataset == 'VOC':
             evaluate(dataset, model)
-        else:
+        elif args.dataset == 'COCO':
+            evaluate_coco(dataset, model)
+        elif args.dataset == 'XVIEW':
             evaluate_coco(dataset, model)
 
 
@@ -177,7 +179,6 @@ def main_worker(gpu, ngpus_per_node, args):
             [Normalizer(), Augmenter(), Resizer()]))
         valid_dataset = VOCDetection(root=args.dataset_root, image_sets=[(
             '2007', 'test')], transform=transforms.Compose([Normalizer(), Resizer()]))
-        args.num_class = train_dataset.num_classes()
     elif(args.dataset == 'COCO'):
         train_dataset = CocoDataset(
             root_dir=args.dataset_root,
@@ -194,8 +195,13 @@ def main_worker(gpu, ngpus_per_node, args):
                 [
                     Normalizer(),
                     Resizer()]))
-        args.num_class = train_dataset.num_classes()
+    elif(args.dataset == 'XVIEW'):
+        normalizer = Normalizer(mu=np.array([0.23582, 0.19489, 0.15979]), sig=np.array([0.11761, 0.096071, 0.086455]))
+        train_dataset = XView(root=args.dataset_root + '/train', transform=transforms.Compose(
+            [normalizer, Augmenter(), Resizer()]))
+        valid_dataset = XView(root=args.dataset_root + '/val', transform=transforms.Compose([normalizer, Resizer()]))
 
+    args.num_class = train_dataset.num_classes()
     train_loader = DataLoader(train_dataset,
                               batch_size=args.batch_size,
                               num_workers=args.workers,
