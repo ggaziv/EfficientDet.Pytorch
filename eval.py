@@ -100,6 +100,7 @@ def _get_detections(dataset, retinanet, score_threshold=0.05, max_detections=100
             # run network
             scores, labels, boxes = retinanet(data['img'].permute(
                 2, 0, 1).cuda().float().unsqueeze(dim=0))
+#             print(scores, labels, boxes)
             scores = scores.cpu().numpy()
             labels = labels.cpu().numpy()
             boxes = boxes.cpu().numpy()
@@ -186,6 +187,7 @@ def evaluate(
 
     all_detections = _get_detections(
         generator, retinanet, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
+    print(all_detections)
     all_annotations = _get_annotations(generator)
 
     average_precisions = {}
@@ -373,12 +375,6 @@ if __name__ == '__main__':
             iou_threshold=args.iou_threshold)
         model.load_state_dict(checkpoint['state_dict'])
     model = model.cuda()
-    if args.dataset == 'VOC':
-        evaluate(dataset, model)
-    elif args.dataset == 'COCO':
-        evaluate_coco(dataset, model)
-    elif args.dataset == 'XVIEW':
-        evaluate_coco(dataset, model)
 
     if(args.dataset == 'VOC'):
         valid_dataset = VOCDetection(root=args.dataset_root, image_sets=[('2007', 'test')],
